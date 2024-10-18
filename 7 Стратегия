@@ -1,0 +1,100 @@
+using System;
+using System.Collections.Generic;
+
+public interface ICostCalculationStrategy
+{
+    decimal CalculateCost(decimal distance, string serviceClass, bool hasDiscount);
+}
+
+public class AirplaneCostStrategy : ICostCalculationStrategy
+{
+    public decimal CalculateCost(decimal distance, string serviceClass, bool hasDiscount)
+    {
+        decimal basePrice = distance * 0.3m;
+        if (serviceClass == "Business")
+            basePrice *= 1.5m;
+        if (hasDiscount)
+            basePrice *= 0.9m;
+        return basePrice;
+    }
+}
+
+public class TrainCostStrategy : ICostCalculationStrategy
+{
+    public decimal CalculateCost(decimal distance, string serviceClass, bool hasDiscount)
+    {
+        decimal basePrice = distance * 0.15m;
+        if (serviceClass == "Business")
+            basePrice *= 1.3m;
+        if (hasDiscount)
+            basePrice *= 0.8m;
+        return basePrice;
+    }
+}
+
+public class BusCostStrategy : ICostCalculationStrategy
+{
+    public decimal CalculateCost(decimal distance, string serviceClass, bool hasDiscount)
+    {
+        decimal basePrice = distance * 0.05m;
+        if (serviceClass == "Business")
+            basePrice *= 1.2m;
+        if (hasDiscount)
+            basePrice *= 0.85m;
+        return basePrice;
+    }
+}
+
+public class TravelBookingContext
+{
+    private ICostCalculationStrategy _strategy;
+
+    public void SetStrategy(ICostCalculationStrategy strategy)
+    {
+        _strategy = strategy;
+    }
+
+    public decimal CalculateTripCost(decimal distance, string serviceClass, bool hasDiscount)
+    {
+        return _strategy.CalculateCost(distance, serviceClass, hasDiscount);
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        var travelContext = new TravelBookingContext();
+
+        Console.WriteLine("Введите тип транспорта (Airplane, Train, Bus):");
+        string transportType = Console.ReadLine();
+
+        Console.WriteLine("Введите расстояние в километрах:");
+        decimal distance = decimal.Parse(Console.ReadLine());
+
+        Console.WriteLine("Выберите класс обслуживания (Economy, Business):");
+        string serviceClass = Console.ReadLine();
+
+        Console.WriteLine("Есть ли скидка? (true/false):");
+        bool hasDiscount = bool.Parse(Console.ReadLine());
+
+        switch (transportType)
+        {
+            case "Airplane":
+                travelContext.SetStrategy(new AirplaneCostStrategy());
+                break;
+            case "Train":
+                travelContext.SetStrategy(new TrainCostStrategy());
+                break;
+            case "Bus":
+                travelContext.SetStrategy(new BusCostStrategy());
+                break;
+            default:
+                Console.WriteLine("Неправильный тип транспорта");
+                return;
+        }
+
+        decimal cost = travelContext.CalculateTripCost(distance, serviceClass, hasDiscount);
+        Console.WriteLine($"Стоимость поездки: {cost}");
+    }
+}
