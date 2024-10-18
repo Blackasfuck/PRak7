@@ -1,0 +1,81 @@
+using System;
+using System.Collections.Generic;
+
+public interface IObserver
+{
+    void Update(string stockSymbol, decimal price);
+}
+
+public interface ISubject
+{
+    void Attach(IObserver observer);
+    void Detach(IObserver observer);
+    void Notify(string stockSymbol, decimal price);
+}
+
+public class StockExchange : ISubject
+{
+    private readonly Dictionary<string, decimal> _stockPrices = new();
+    private readonly List<IObserver> _observers = new();
+
+    public void Attach(IObserver observer)
+    {
+        _observers.Add(observer);
+    }
+
+    public void Detach(IObserver observer)
+    {
+        _observers.Remove(observer);
+    }
+
+    public void Notify(string stockSymbol, decimal price)
+    {
+        foreach (var observer in _observers)
+        {
+            observer.Update(stockSymbol, price);
+        }
+    }
+
+    public void UpdateStockPrice(string stockSymbol, decimal price)
+    {
+        _stockPrices[stockSymbol] = price;
+        Notify(stockSymbol, price);
+    }
+}
+
+public class Trader : IObserver
+{
+    public void Update(string stockSymbol, decimal price)
+    {
+        Console.WriteLine($"Трейдер: Цена акции {stockSymbol} изменилась на {price}");
+    }
+}
+
+public class TradingRobot : IObserver
+{
+    public void Update(string stockSymbol, decimal price)
+    {
+        if (price < 50)
+            Console.WriteLine($"Робот: Покупаю акции {stockSymbol} по цене {price}");
+        else if (price > 100)
+            Console.WriteLine($"Робот: Продаю акции {stockSymbol} по цене {price}");
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        var stockExchange = new StockExchange();
+        var trader = new Trader();
+        var tradingRobot = new TradingRobot();
+
+        stockExchange.Attach(trader);
+        stockExchange.Attach(tradingRobot);
+
+        stockExchange.UpdateStockPrice("AAPL", 120);
+        stockExchange.UpdateStockPrice("AAPL", 45);
+        stockExchange.UpdateStockPrice("GOOGL", 95);
+        stockExchange.UpdateStockPrice("GOOGL", 105);
+    }
+}
